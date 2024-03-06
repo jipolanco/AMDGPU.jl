@@ -72,6 +72,7 @@ function GPUCompiler.finish_module!(
         "signal_exception", "report_exception", "malloc", "__throw_")
     inline_attr = EnumAttribute("alwaysinline")
     atomic_attr = StringAttribute("amdgpu-unsafe-fp-atomics", "true")
+    denom_attr = StringAttribute("denormal-fp-math", "preserve-sign,preserve-sign")
 
     for fn in LLVM.functions(mod)
         do_inline = any(occursin.(target_fns, LLVM.name(fn)))
@@ -80,6 +81,8 @@ function GPUCompiler.finish_module!(
 
             do_inline && inline_attr ∉ collect(attrs) &&
                 push!(attrs, inline_attr)
+            job.config.params.unsafe_fp_atomics &&
+                push!(attrs, denom_attr)
             job.config.params.unsafe_fp_atomics &&
                 push!(attrs, atomic_attr)
         end
